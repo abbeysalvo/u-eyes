@@ -16,7 +16,7 @@ it('responds with details about the current user', async () => {
   expect(response.body.currentUser.email).toEqual(emailForTesting)
 })
 
-it('responds with null when no user is signed in', async () => {
+it('responds with null if not authenticated', async () => {
   const response = await successfulCurrentUser([])
   expect(response.body.currentUser).toEqual(null)
 })
