@@ -47,7 +47,7 @@ it('returns an error if an invalid description is provided', async () => {
     .expect(400)
 })
 
-it('creates a ticket with valid inputs', async () => {
+it('creates a project with valid inputs', async () => {
   let projects = await Project.find({})
   expect(projects.length).toEqual(0)
 

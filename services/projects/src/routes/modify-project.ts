@@ -7,6 +7,8 @@ import {
   validateRequest,
 } from '@as-extensions/common'
 import { Project } from '../models/project'
+import { ProjectModifiedPublisher } from '../events/publishers/project-modified-publisher'
+import { natsWrapper } from '../nats-wrapper'
 
 const router = express.Router()
 
@@ -26,8 +28,10 @@ router.put(
   ],
   validateRequest,
   async (req: Request, res: Response) => {
+    // Request incoming
     const project = await Project.findById(req.params.id)
 
+    // Validation
     if (!project) {
       throw new NotFoundError()
     }
@@ -36,12 +40,25 @@ router.put(
       throw new NotAuthorizedError()
     }
 
+    // Modify the document
     project.set({
       title: req.body.title,
       description: req.body.description,
     })
 
+    // Save the changes
     await project.save()
+
+    // Publish an event
+    // The getter, natsWrapper.client, will throw an error if
+    // the system attempts to access the client prior to it being defined
+    // or prior to connecting to NATS
+    await new ProjectModifiedPublisher(natsWrapper.client).publish({
+      description: project.description,
+      id: project.id,
+      title: project.title,
+      userId: project.userId,
+    })
 
     res.send(project)
   }
